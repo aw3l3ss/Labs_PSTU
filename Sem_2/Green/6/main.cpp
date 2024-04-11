@@ -14,6 +14,7 @@ int main()
     Gets(&str);
     task(str);
     free(str);
+    return 0;
 }
 
 void Gets(char **string) {
