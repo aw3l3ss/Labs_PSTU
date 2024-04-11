@@ -48,9 +48,16 @@ void print_array(int *arr[], int n, int m) {
 }
 
 void format_array(int *arr[], int *n, int m, int a, int b) {
-    for (int i = a; i - a + b < *n; i++) {
-        arr[i] = arr[i - a + b];
+    int i;
+    for (i = a; i - a + b + 1 < *n; i++) {
+        for (int j = 0; j < m; j++) {
+            arr[i][j] = arr[i - a + b + 1][j];
+        }
     }
 
-    *n -= (b - a);
+    for (; i < *n; i++) {
+        delete[] arr[i];
+    }
+
+    *n -= (b - a + 1);
 }
