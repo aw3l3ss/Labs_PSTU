@@ -116,15 +116,23 @@ void readPersonFromFile(std::vector<Person> &persons, std::string filename) {
 
 void format(std::vector<Person> &persons) {
     int index;
-    std::cout << "Enter index to delete: ";
+    std::cout << "Enter age to delete: ";
     std::cin >> index;
 
     size_t size = persons.size();
+    int step = 0;
 
-    for (size_t i = index + 1; i < size; i++) {
-        persons[i - 1] = persons[i];
+    for (size_t i = 0; i < size; i++) {
+        if (persons[i].age == index) {
+            ++step;
+        }
+
+        if (step) {
+            persons[i] = persons[i + step];
+        }
     }
-    --size;
+
+    size -= step;
 
     persons.resize(size); 
 
