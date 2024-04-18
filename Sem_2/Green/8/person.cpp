@@ -8,7 +8,7 @@ struct Person {
 };
 
 Person *create_person() {
-    return (Person *) calloc(1, sizeof(Person));
+    return new Person();
 }
 
 void add_data_to_person(Person *person, std::string name, std::string adress, std::string phone, int age) {
@@ -22,7 +22,7 @@ std::string get_name(Person *person) {
     return person->name;
 }
 
-std::string get_adress(Person *person) {
+std::string get_address(Person *person) {
     return person->address;
 }
 
@@ -35,5 +35,5 @@ int get_age(Person *person) {
 }
 
 void delete_person(Person *person) {
-    free(person);
+    delete person;
 }
