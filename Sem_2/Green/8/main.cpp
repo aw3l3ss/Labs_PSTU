@@ -1,167 +1,172 @@
-#include <iostream>
-#include <string>
-#include <vector>
+#include "person.h"
 
-typedef struct Person {
-    std::string full_name;
-    std::string home_address;
-    std::string phone_number;
-    int age;
-} Person;
-
-void writePersonToFile(std::vector<Person> &persons, std::string filename);
-void readPersonFromFile(std::vector<Person> &persons, std::string filename);
-void format(std::vector<Person> &persons);
-void print(std::vector<Person> &persons);
+void write_to_bin_file(Person **arr, int size, std::string filename);
+void read_from_bin_file(Person ***arr1, int *size, std::string filename);
+void delete_arr(Person **arr, int size);
+void delete_by_age(Person ***arr1, int *size);
+void print_arr(Person **arr, int size);
 
 int main() {
-    std::vector<Person> persons;
+    Person **arr = (Person **) calloc(1, sizeof(Person*));
+    int size = 1;
+
     std::string filename;
     std::cout << "Enter filename: ";
-    std::cin >> filename;
+    std::getline(std::cin, filename);
 
-    while (true) {
-        getchar();
+    char ans = 'y';
 
-        Person person;
+    while (ans != 'n') {
+        Person *p = create_person();
+        std::string name, adress, phone;
+        int age;
 
-        std::cout << "Enter full name: ";
-        std::getline(std::cin, person.full_name);
-        std::cout << "Enter home address: ";
-        std::getline(std::cin, person.home_address);
-        std::cout << "Enter phone number: ";
-        std::getline(std::cin, person.phone_number);
+        std::cout << "Enter name: ";
+        std::getline(std::cin, name);
+        std::cout << "Enter adress: ";
+        std::getline(std::cin, adress);
+        std::cout << "Enter phone: ";
+        std::getline(std::cin, phone);
         std::cout << "Enter age: ";
-        std::cin >> person.age;
+        std::cin >> age;
 
-        persons.push_back(person);
+        add_data_to_person(p, name, adress, phone, age);
 
-        std::cout << "Add one more? (y/n): ";
-        char answer;
-        std::cin >> answer;
-        if (answer == 'n' || answer == 'N') {
-            break;
+        arr[size - 1] = p;
+        std::cout << "Do you want to add another person? (y/n): ";
+        std::cin >> ans;
+
+        if (ans == 'y') {
+            arr = (Person **) realloc(arr, (++size) * sizeof(Person*));
         }
+
+        getchar();
     }
 
-    writePersonToFile(persons, filename);
-    readPersonFromFile(persons, filename);    
-    print(persons);
+    write_to_bin_file(arr, size, filename);
+    delete_arr(arr, size);
 
-    format(persons);
+    arr = (Person **) calloc(1, sizeof(Person*));
+    read_from_bin_file(&arr, &size, filename);
+    print_arr(arr, size);
+    delete_by_age(&arr, &size);
+    write_to_bin_file(arr, size, filename);
+    delete_arr(arr, size);
 
-    writePersonToFile(persons, filename);
-    readPersonFromFile(persons, filename);
-    print(persons);
+    arr = (Person **) calloc(1, sizeof(Person*));
+    read_from_bin_file(&arr, &size, filename);
+    print_arr(arr, size);
+    delete_arr(arr, size);
 
     return 0;
 }
 
-void writePersonToFile(std::vector<Person> &persons, std::string filename) {
-    FILE *f = fopen(filename.c_str(), "wb");
-    size_t size = persons.size();
+void write_to_bin_file(Person **arr, int size, std::string filename) {
+    FILE *file = fopen(filename.c_str(), "wb");
 
-    fwrite(&size, sizeof(size_t), 1, f);
+    fwrite(&size, sizeof(int), 1, file);
+    for (int i = 0; i < size; i++) {
+        int len = get_name(arr[i]).length();
+        fwrite(&len, sizeof(int), 1, file);
+        fwrite(get_name(arr[i]).c_str(), sizeof(char), len, file);
 
-    for (size_t i = 0; i < size; i++) {
-        size_t length;
-        Person person = persons[i];
+        len = get_adress(arr[i]).length();
+        fwrite(&len, sizeof(int), 1, file);
+        fwrite(get_adress(arr[i]).c_str(), sizeof(char), len, file);
 
-        length = person.full_name.size();
-        fwrite(&length, sizeof(size_t), 1, f);
-        fwrite(person.full_name.c_str(), sizeof(char), length, f);
+        len = get_phone(arr[i]).length();
+        fwrite(&len, sizeof(int), 1, file);
+        fwrite(get_phone(arr[i]).c_str(), sizeof(char), len, file);
 
-        length = person.home_address.size();
-        fwrite(&length, sizeof(size_t), 1, f);
-        fwrite(person.home_address.c_str(), sizeof(char), length, f);
-
-        length = person.phone_number.size();
-        fwrite(&length, sizeof(size_t), 1, f);
-        fwrite(person.phone_number.c_str(), sizeof(char), length, f);
-
-        fwrite(&person.age, sizeof(int), 1, f);
+        len = get_age(arr[i]);
+        fwrite(&len, sizeof(int), 1, file);
     }
 
-    fclose(f);
+    fclose(file);
+  }
+
+void read_from_bin_file(Person ***arr1, int *size, std::string filename) {
+    FILE *file = fopen(filename.c_str(), "rb");
+
+    fread(size, sizeof(int), 1, file);
+
+    Person **arr = (Person **) calloc(*size, sizeof(Person *));
+
+    for (int i = 0; i < *size; i++) {
+        int len;
+
+        fread(&len, sizeof(int), 1, file);
+        std::string name;
+        name.resize(len);
+        fread(&name[0], sizeof(char), len, file);
+
+        fread(&len, sizeof(int), 1, file);
+        std::string adress;
+        adress.resize(len);
+        fread(&adress[0], sizeof(char), len, file);
+
+        fread(&len, sizeof(int), 1, file);
+        std::string phone;
+        phone.resize(len);
+        fread(&phone[0], sizeof(char), len, file);
+
+        int age;
+        fread(&age, sizeof(int), 1, file);
+
+        Person *p = create_person();
+        add_data_to_person(p, name, adress, phone, age);
+
+        arr[i] = p;
+    }
+
+    free(*arr1);
+
+    *arr1 = arr;
+
+    fclose(file);
 }
 
-void readPersonFromFile(std::vector<Person> &persons, std::string filename) {
-    FILE *f = fopen(filename.c_str(), "rb");
-    size_t size = persons.size();
-
-    fread(&size, sizeof(size_t), 1, f);
-    persons.resize(size);
-    
-    for (size_t i = 0; i < size; i++) {
-        size_t length;
-        Person person = persons[i];
-
-        fread(&length, sizeof(size_t), 1, f);
-        person.full_name.resize(length);
-        fread(person.full_name.data(), sizeof(char), length, f);
-
-        fread(&length, sizeof(size_t), 1, f);
-        person.home_address.resize(length);
-        fread(person.home_address.data(), sizeof(char), length, f);
-
-        fread(&length, sizeof(size_t), 1, f);
-        person.phone_number.resize(length);
-        fread(person.phone_number.data(), sizeof(char), length, f);
-
-        fread(&person.age, sizeof(int), 1, f);
+void delete_arr(Person **arr, int size) {
+    for (int i = 0; i < size; i++) {
+        delete_person(arr[i]);
     }
-
-    fclose(f);
+    free(arr);
 }
 
-void format(std::vector<Person> &persons) {
-    int index;
-    std::cout << "Enter index to delete: ";
-    std::cin >> index;
+void delete_by_age(Person ***arr1, int *size) {
+    Person **arr = (Person **) realloc(*arr1, *size * sizeof(Person *));
 
-    size_t size = persons.size();
+    int age;
+    std::cout << "Input age for delete: ";
+    std::cin >> age;
 
-    for (size_t i = index + 1; i < size; i++) {
-        persons[i - 1] = persons[i];
-    }
-    --size;
+    int step = 0;
 
-    persons.resize(size); 
+    for (int i = 0; i < *size - step; i++) {
+        if (get_age(arr[i]) == age) {
+            delete_person(arr[i]);
+            ++step;
+        }
 
-    std::cout << "Enter index to insert: ";
-    std::cin >> index;
-    int cnt;
-    std::cout << "Enter number of persons to insert: ";
-    std::cin >> cnt;
-
-    persons.resize(size + cnt);
-    for (size_t i = index + cnt + 1; i < size + cnt; i++) {
-        persons[i] = persons[i - cnt];
+        if (step > 0) {
+            arr[i] = arr[i + step];
+        }
     }
 
-    getchar();
+    *size -= step;
 
-    for (size_t i = index + 1; i < index + cnt + 1; i++) {
-        Person person;
+    arr = (Person **) realloc(arr, *size * sizeof(Person *));
 
-        std::cout << "Enter full name: ";
-        std::getline(std::cin, person.full_name);
-        std::cout << "Enter home address: ";
-        std::getline(std::cin, person.home_address);
-        std::cout << "Enter phone number: ";
-        std::getline(std::cin, person.phone_number);
-        std::cout << "Enter age: ";
-        std::cin >> person.age;
-
-        persons[i] = person;
-    }
+    *arr1 = arr;
 }
 
-void print(std::vector<Person> &persons) {
-    for (size_t i = 0; i < persons.size(); i++) {
-        std::cout << persons[i].full_name << std::endl;
-        std::cout << persons[i].home_address << std::endl;
-        std::cout << persons[i].phone_number << std::endl;
-        std::cout << persons[i].age << std::endl << std::endl;
+void print_arr(Person **arr, int size) {
+    for (int i = 0; i < size; i++) {
+        std::cout << "Person " << i + 1 << ":" << std::endl;
+        std::cout << "Name: " << get_name(arr[i]) << std::endl;
+        std::cout << "Adress: " << get_adress(arr[i]) << std::endl;
+        std::cout << "Phone: " << get_phone(arr[i]) << std::endl;
+        std::cout << "Age: " << get_age(arr[i]) << std::endl;
+        std::cout << std::endl;
     }
 }
