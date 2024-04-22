@@ -48,6 +48,7 @@
 
 # Result files
 *.bin
+*.txt
 
 # Kernel Module Compile Results
 *.mod*
