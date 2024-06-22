@@ -1,26 +1,27 @@
 #include <iostream>
 #include "vector.h"
+#include "time.h"
 
 int main() {
-    Vector a(5);
-    std::cout << a << std::endl;
-    std::cin >> a;
-    std::cout << a << std::endl;
-    a[2] = 100;
-    std::cout << a << std::endl;
-    Vector b(10);
-    std::cout << b << std::endl;
-    b = a;
-    std::cout << b << std::endl;
-    Vector c(10); 
-    c = b * 2;
-    std::cout << c << std::endl;
-    std::cout << "the length of a = " << a() << std::endl;
+    Time t;
+    std::cin >> t;
+    std::cout << t << std::endl;
 
-    std::cout << *(a.first()) << std::endl;
-    Iterator it = a.first();
-    it -= 1;
-    std::cout << *it << std::endl;
+    Vector<Time> A(5, t);
+    std::cin >> A;
+    std::cout << A << std::endl;
+
+    Vector<Time> B(10, t);
+    std::cout << B << std::endl;
+
+    B = A;
+    std::cout << B << std::endl;
+    std::cout << A[2] << std::endl;
+    std::cout << "size A = " << A() << std::endl;
+
+    B = A * 2;
+    std::cout << A << std::endl;
+    std::cout << B << std::endl;
 
     return 0;
 }
